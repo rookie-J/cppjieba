@@ -77,6 +77,7 @@ class MPSegment: public SegmentTagged {
     return dictTrie_->IsUserDictSingleChineseWord(value);
   }
  private:
+ /*
   void CalcDP(vector<Dag>& dags) const {
     size_t nextPos;
     const DictUnit* p;
@@ -105,6 +106,38 @@ class MPSegment: public SegmentTagged {
         }
       }
     }
+  }
+*/
+  void CalcDP(vector<Dag>& dags) const {
+      size_t dagSize = dags.size();
+      size_t nextPos;
+      const DictUnit* p;
+      double val;
+
+      for(size_t i = 0; i < dagSize; i++){
+          dags[dagSize - i - 1].pInfo = NULL;
+          dags[dagSize - i - 1].weight = MIN_DOUBLE;
+          assert(!dags[dagSize - i - 1].nexts.empty());
+          for(LocalVector<pair<size_t, const DictUnit*> >::const_iterator it = dags[dagSize - i - 1].nexts.begin();
+              it != dags[dagSize - i - 1].nexts.end(); it++) {
+              nextPos = it->first;
+              p = it->second;
+              val = 0.0;
+              if(nextPos + 1 < dags.size()) {
+                  val += dags[nextPos + 1].weight;
+              }
+
+              if(p) {
+                  val += p->weight;
+              } else {
+                  val += dictTrie_->GetMinWeight();
+              }
+              if(val > dags[dagSize - i - 1].weight) {
+                  dags[dagSize - i - 1].pInfo = p;
+                  dags[dagSize - i - 1].weight = val;
+              }
+          }
+      }
   }
   void CutByDag(RuneStrArray::const_iterator begin, 
         RuneStrArray::const_iterator end, 
